@@ -13,13 +13,14 @@ module CustomVertexGraphs
   # and `InvVectorBijection`, a Bijection where the inverse is a `Vector` (maps a contiguous
   # space of integers to another space).
   # TODO: rename `parent_graph` to something more descriptive like `simple_graph`, `int_vertex_graph`, etc.
-  struct CustomVertexGraph{V,G<:AbstractGraph,B<:AbstractBijection} <: AbstractGraph{V}
+  struct CustomVertexGraph{V,L,G<:AbstractGraph,B<:AbstractBijection} <: AbstractGraph{V}
     parent_graph::G
     vertex_to_parent_vertex::B # Invertible map from the vertices to the parent vertices
-    function CustomVertexGraph(parent_graph::G, vertex_to_parent_vertex::B) where {G<:AbstractGraph,B<:AbstractBijection}
+    graph_label::L
+    function CustomVertexGraph(parent_graph::G, vertex_to_parent_vertex::B, graph_label::L=nothing) where {G<:AbstractGraph,B<:AbstractBijection,L}
       @assert issetequal(vertices(parent_graph), image(vertex_to_parent_vertex))
       V = domain_eltype(vertex_to_parent_vertex)
-      return new{V,G,B}(parent_graph, vertex_to_parent_vertex)
+      return new{V,L,G,B}(parent_graph, vertex_to_parent_vertex, graph_label)
     end
   end
   parent_graph(graph::CustomVertexGraph) = graph.parent_graph
@@ -209,7 +210,7 @@ module CustomVertexGraphs
   end
 
   function show(io::IO, mime::MIME"text/plain", graph::CustomVertexGraph)
-    println(io, "CustomVertexGraph with $(nv(graph)) vertices:")
+    println(io, "CustomVertexGraph with graph label $(graph_label(graph)), $(nv(graph)) vertices:")
     show(io, mime, vertices(graph))
     println(io, "\n")
     println(io, "and $(ne(graph)) edge(s):")
